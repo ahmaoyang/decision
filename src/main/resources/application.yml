@@ -1,0 +1,91 @@
+spring:
+  debug: true
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+#    url: jdbc:mysql://rm-j6c1k235u1rn2t0d6ko.mysql.rds.aliyuncs.com:3306/cbms?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8
+#    username: febc
+#    password: cbms@2019
+    url: jdbc:mysql://192.168.5.252:3307/decision?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: com.febc.cbms@test
+
+
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    joda-date-time-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  mvc:
+    servlet:
+      load-on-startup: 1
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    #password: redispassword
+    timeout: 10s
+    lettuce:
+      pool:
+        min-idle: 0
+        max-idle: 8
+        max-active: 8
+        max-wait: -1ms
+    database: 1
+#  activemq:
+#    broker-url: tcp://192.168.5.252:61616?tcpNoDelay=true
+#    packages:
+#      trust-all: true
+#    pool:
+#      enabled: true
+#      max-connections: 50
+#      idle-timeout: 30s
+#    jms:
+#      listener:
+#        max-concurrency: 8
+#        concurrency: 4
+#        acknowledge-mode: auto
+#      template:
+#        default-destination: report
+
+
+  mail:
+    default-encoding: UTF-8
+    host: smtp.mxhichina.com
+    username: y.mao@febc.com.cn
+    password: hellomaoyang123!!
+    protocol: smtp
+    test-connection: false
+mybatis:
+  type-aliases-package: com.ry.cbms.decision.server.model
+  mapper-locations: classpath:/mybatis-mappers/*
+  configuration:
+    mapUnderscoreToCamelCase: true
+files:
+  path: ${file-path:d:/files}
+logging:
+  config: classpath:logback-admin.xml
+log:
+  level:
+    root: info
+    my: debug
+  file: logs/admin-server.log
+  maxsize: 30MB
+token:
+  expire:
+    seconds: 7200
+  jwtSecret: (XIAO:)_$^11244^%$_(WEI:)_@@++--(LAO:)_++++_.sds_(SHI:)
+server:
+  port: 8081
+application:
+  auth:
+    without-urls: /,/login,/index
+#pagehelper分页插件配置
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
+

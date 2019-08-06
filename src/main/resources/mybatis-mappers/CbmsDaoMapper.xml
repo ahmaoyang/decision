@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ry.cbms.decision.server.dao.AgentsUserDao">
+
+    <select id="getAgentsUserList" resultType="com.ry.cbms.decision.server.dto.AgentsUser">
+             select userid,content as name from cbms.agents_users_extend where labelName ='您的姓名' and content like concat('%',#{dimUserName},'%')
+    </select>
+
+</mapper>

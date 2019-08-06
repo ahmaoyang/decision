@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ry.cbms.decision.server.dao.CashInAndOutDao">
+
+    <select id="getAccountData" resultType="java.util.Map">
+
+        SELECT (select sum(actOutAmount+platformActPayFee) from cbms.flow_withdraw where acctType=2 and
+        mt4State=1 and state=1)
+        commActOut,
+        (select sum(actInAmount) FROM cbms.flow_deposit t
+        <where>
+
+            <if test="currency != null and currency != ''">
+                and t.currency= #{currency}
+            </if>
+
+            <if test="account != null and account != ''">
+                and t.mt4Acct in(${account})
+            </if>
+            and t.mt4State=1 and t.state=1
+        </where>
+        )cashActIn,(select sum(actOutAmount+platformActPayFee) FROM cbms.flow_withdraw w
+        <where>
+            and acctType=1
+            <if test="currency != null and currency != ''">
+                and w.currency= #{currency}
+            </if>
+
+            <if test="account != null and account != ''">
+                and w.mt4Acct in(${account})
+            </if>
+            and w.mt4State=1 and w.state=1
+        </where>
+
+        )cashActOut
+    </select>
+
+
+    <select id="getChannelCashInSumByCondition" resultType="java.math.BigDecimal">
+        select sum(actInAmount)cashIn from cbms.flow_deposit t
+        <where>
+            <if test="currency != null and currency != ''">
+                and currency=#{currency}
+            </if>
+            <if test="mt4Acc != null and mt4Acc != ''">
+                and mt4Acct=#{mt4Acc}
+            </if>
+            <if test="userId != null and userId != ''">
+                and userid in(${userId})
+            </if>
+            <if test="startDate != null and startDate  != ''">
+                and operaterTime>= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate}>operaterTime
+            </if>
+            and mt4State=1 and state=1 and depositType=1
+        </where>
+    </select>
+
+    <select id="getChannelCashOutSumByCondition" resultType="java.math.BigDecimal">
+        select sum(actOutAmount)cashOut from cbms.flow_withdraw t
+        <where>
+            <if test="currency != null and currency != ''">
+                and currency=#{currency}
+            </if>
+            <if test="mt4Acc != null and mt4Acc != ''">
+                and mt4Acct=#{mt4Acc}
+            </if>
+            <if test="userId != null and userId != ''">
+                and userid in(${userId})
+            </if>
+            <if test="startDate != null and startDate  != ''">
+                and operaterTime>= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate}>operaterTime
+            </if>
+            and mt4State=1 and state=1
+        </where>
+    </select>
+
+    <select id="getChannelCashInByDay" resultType="java.util.Map">
+        SELECT DATE_FORMAT(operaterTime,'%Y-%m-%d') reqTime ,sum(moneyRmb)
+        cashIn,sum(actInAmount)toAccountActualAmount,sum(moneyRmb)userPayActual,sum(payFee)payFee,sum(platformPayFee)platformPayFee,sum(platformActPayFee)platformActPayFee
+        FROM
+        cbms.flow_deposit
+        <where>
+            <if test="currency != null and currency != ''">
+                and currency=#{currency}
+            </if>
+
+            <if test="userId !=null">
+                and userid in(${userId})
+            </if>
+            <if test="mt4Acct !=null and  mt4Acct != ''">
+                and mt4Acct in(${mt4Acct})
+            </if>
+            <if test="startDate != null and startDate!=''">
+                and operaterTime >= #{startDate}
+            </if>
+            <if test="endDate!= null and endDate!=''">
+                and #{endDate} >= operaterTime
+            </if>
+            and mt4State=1 and state=1 and depositType=1
+        </where>
+        group by DATE_FORMAT(operaterTime,'%Y-%m-%d')
+    </select>
+
+
+    <select id="getChannelCashIn" resultType="java.util.Map">
+        SELECT
+        sum(actInAmount) cashIn
+        FROM
+        cbms.flow_deposit
+        <where>
+            <if test="currency != null and currency != ''">
+                and currency=#{currency}
+            </if>
+
+            <if test="userId !=null">
+                and userid in(${userId})
+            </if>
+            <if test="mt4Acct !=null and  mt4Acct != ''">
+                and mt4Acct in(${mt4Acct})
+            </if>
+            <if test="startDate != null and startDate!=''">
+                and operaterTime >= #{startDate}
+            </if>
+            <if test="endDate!= null and endDate!=''">
+                and #{endDate} >= operaterTime
+            </if>
+            and mt4State=1 and state=1
+        </where>
+    </select>
+
+    <select id="getChannelCashOut" resultType="java.util.Map">
+        SELECT
+        sum(actOutAmount)cashOut
+        FROM cbms.flow_withdraw
+        <where>
+            <if test="currency != null and currency != ''">
+                and currency=#{currency}
+            </if>
+
+            <if test="userId != null">
+                and userid in(${userId})
+            </if>
+            <if test="mt4Acct !=null and  mt4Acct != ''">
+                and mt4Acct in(${mt4Acct})
+            </if>
+            <if test="startDate != null and startDate  != ''">
+                and operaterTime>= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate}>=operaterTime
+            </if>
+            and mt4State=1 and state=1
+        </where>
+    </select>
+
+
+    <select id="getChannelCashInByMonth" resultType="java.util.Map">
+        SELECT DATE_FORMAT(operaterTime,'%Y-%m') reqTime ,sum(moneyRmb)
+        cashIn,sum(actInAmount)toAccountActualAmount,sum(moneyRmb)userPayActual,sum(payFee)payFee,sum(platformPayFee)platformPayFee,sum(platformActPayFee)platformActPayFee
+        FROM
+        cbms.flow_deposit
+        <where>
+            <if test="currency != null and currency != ''">
+                and currency=#{currency}
+            </if>
+
+            <if test="userId != null and userId != ''">
+                and userid in(${userId})
+            </if>
+            <if test="mt4Acct !=null and  mt4Acct != ''">
+                and mt4Acct in(${mt4Acct})
+            </if>
+            <if test="startDate != null and startDate  != ''">
+                and operaterTime>= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=operaterTime
+            </if>
+            and mt4State=1 and state=1 and depositType=1
+        </where>
+        group by DATE_FORMAT(operaterTime,'%Y-%m')
+    </select>
+
+    <select id="getChannelCashOutByMonth" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT(operaterTime,'%Y-%m')
+        reqTime,sum(moneyRmb)cashOut,sum(platformPayFee)platformPayFee,sum(platformActPayFee)platformActPayFee,sum(payFee)payFee,sum(actOutAmount)userCashOutActualAmount
+        FROM cbms.flow_withdraw
+        <where>
+            <if test="currency != null and currency != ''">
+                and currency=#{currency}
+            </if>
+
+            <if test="userId != null">
+                and userid in(${userId})
+            </if>
+            <if test="mt4Acct !=null and  mt4Acct != ''">
+                and mt4Acct in(${mt4Acct})
+            </if>
+            <if test="startDate != null and startDate  != ''">
+                and operaterTime>= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate}>=operaterTime
+            </if>
+            and mt4State=1 and state=1 and acctType=1
+        </where>
+        group by DATE_FORMAT(operaterTime,'%Y-%m')
+    </select>
+
+    <select id="getChannelCashOutByDay" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT(operaterTime,'%Y-%m-%d')
+        reqTime,sum(actOutAmount)cashOut,sum(platformPayFee)platformPayFee,sum(platformActPayFee)platformActPayFee,sum(payFee)payFee,sum(actOutAmount)userCashOutActualAmount
+        FROM cbms.flow_withdraw
+        <where>
+            <if test="currency != null and currency != ''">
+                and currency=#{currency}
+            </if>
+
+            <if test="userId != null">
+                and userid in(${userId})
+            </if>
+            <if test="mt4Acct !=null and  mt4Acct != ''">
+                and mt4Acct in(${mt4Acct})
+            </if>
+            <if test="startDate != null and startDate  != ''">
+                and operaterTime>= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate}>=operaterTime
+            </if>
+            and mt4State=1 and state=1 and acctType=1
+        </where>
+        group by reqTime
+    </select>
+
+
+    <select id="getChannelCommOutByMonth" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT(operaterTime,'%Y-%m')
+        reqTime,sum(moneyRmb)cashOut,sum(platformPayFee)platformPayFee,sum(platformActPayFee)platformActPayFee,sum(payFee)payFee,sum(actOutAmount)userCashOutActualAmount
+        FROM cbms.flow_withdraw
+        <where>
+            <if test="currency != null and currency != ''">
+                and currency=#{currency}
+            </if>
+
+            <if test="userId != null">
+                and userid in(${userId})
+            </if>
+            <if test="mt4Acct !=null and  mt4Acct != ''">
+                and mt4Acct in(${mt4Acct})
+            </if>
+            <if test="startDate != null and startDate  != ''">
+                and operaterTime>= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate}>=operaterTime
+            </if>
+            and mt4State=1 and state=1 and acctType=2
+        </where>
+        group by DATE_FORMAT(operaterTime,'%Y-%m')
+    </select>
+
+    <select id="getChannelCommOutByDay" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT(operaterTime,'%Y-%m-%d')
+        reqTime,sum(moneyRmb)cashOut,sum(platformPayFee)platformPayFee,sum(platformActPayFee)platformActPayFee,sum(payFee)payFee,sum(actOutAmount)userCashOutActualAmount
+        FROM cbms.flow_withdraw
+        <where>
+            <if test="currency != null and currency != ''">
+                and currency=#{currency}
+            </if>
+
+            <if test="userId != null and userId != ''">
+                and userid in(${userId})
+            </if>
+            <if test="startDate != null and startDate  != ''">
+                and operaterTime>= #{startDate}
+            </if>
+            <if test="mt4Acct !=null and  mt4Acct != ''">
+                and mt4Acct in(${mt4Acct})
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=operaterTime
+            </if>
+            and mt4State=1 and state=1 and acctType=2
+        </where>
+        group by reqTime
+    </select>
+
+
+    <select id="getCashOutByCondition" resultType="java.lang.String">
+        SELECT operaterTime as requestTime
+        FROM cbms.flow_withdraw
+        <where>
+            <if test="currency != null and currency != ''">
+                and currency=#{currency}
+            </if>
+
+            <if test="mt4Acc != null and mt4Acc != ''">
+                and mt4Acct =#{mt4Acc}
+            </if>
+            and mt4State=1 and state=1 and acctType=1
+        </where>
+    </select>
+
+
+    <select id="getCashOutList" resultType="java.util.Map">
+        select * from cbms.flow_withdraw t
+        <where>
+            <if test="startTime != null and startTime != ''">
+                and operaterTime >= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and #{endTime} > operaterTime
+            </if>
+
+            <if test="mt4Acc != null and mt4Acc != ''">
+                and mt4Acct in (#{mt4Acc})
+            </if>
+            and mt4State=1 and state=1
+        </where>
+    </select>
+
+
+    <select id="getCashInList" resultType="java.util.Map">
+        select * from cbms.flow_deposit t
+        <where>
+            <if test="startTime != null and startTime != ''">
+                and operaterTime >= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and #{endTime} >operaterTime
+            </if>
+
+            <if test="mt4Acc != null and mt4Acc != ''">
+                and mt4Acct in (#{mt4Acc})
+            </if>
+            and mt4State=1 and state=1 and depositType=1
+        </where>
+    </select>
+
+
+    <select id="getCashOutGroupByMt4Acc" resultType="java.util.Map">
+        select acctType,userid,mt4Acct,sum(actOutAmount)cashOut,sum(platformActPayFee)platformActPayFee from
+        cbms.flow_withdraw
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and operaterTime >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= operaterTime
+            </if>
+
+            <if test="mt4Acc != null and mt4Acc != ''">
+                and mt4Acct in (${mt4Acc})
+            </if>
+            and mt4State=1 and state=1 and acctType=1
+        </where>
+        group by mt4Acct,acctType
+        limit #{offset},#{limit}
+    </select>
+
+    <select id="getCashOutGroupByMt4AccTotals" resultType="java.lang.Integer">
+        select * from cbms.flow_withdraw
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and operaterTime >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= operaterTime
+            </if>
+            <if test=" mt4Acc != null and mt4Acc != ''">
+                and mt4Acct in (${mt4Acc})
+            </if>
+            and mt4State=1 and state=1 and acctType=1
+        </where>
+        group by mt4Acct
+    </select>
+
+
+    <select id="getCashOutGroupByMt4AccTotalCount" resultType="java.lang.Integer">
+        select Count(*) from( select Count(*) from cbms.flow_withdraw
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and operaterTime >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= operaterTime
+            </if>
+
+            <if test="mt4Acc != null and mt4Acc != ''">
+                and mt4Acct in (${mt4Acc})
+            </if>
+            and mt4State=1 and state=1 and acctType=1
+        </where>
+        group by mt4Acct)a
+    </select>
+
+
+    <select id="getCashInGroupByMt4AccTotalCount" resultType="java.lang.Integer">
+        select Count(*) from (select count(*) from
+        cbms.flow_deposit
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and operaterTime >= #{startDate}
+            </if>
+            <if test="endDate!= null and endDate != ''">
+                and #{endDate} > =operaterTime
+            </if>
+
+            <if test="mt4Acc != null and mt4Acc != ''">
+                and mt4Acct in (${mt4Acc})
+            </if>
+            and mt4State=1 and state=1 and depositType=1
+        </where>
+        group by mt4Acct)a
+    </select>
+
+
+    <select id="getCashInGroupByMt4Acc" resultType="java.util.Map">
+        select mt4Acct,cashIn from (
+        select mt4Acct,sum(actInAmount)cashIn,operaterTime from
+        cbms.flow_deposit where mt4State=1 and state=1 and depositType=1 group by mt4Acct
+        union
+        select mtAcct, 0 as cashIn ,0 as operaterTime from cbms.flow_mt4acct where mtAcct >0
+        )a
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and operaterTime >= #{startDate}
+            </if>
+            <if test="endDate!= null and endDate != ''">
+                and #{endDate} >=operaterTime
+            </if>
+
+            <if test="mt4Acc != null and mt4Acc != ''">
+                and mt4Acct in (${mt4Acc})
+            </if>
+        </where>
+        group by mt4Acct
+        limit #{offset},#{limit}
+    </select>
+
+
+    <select id="getCashInByMt4Acc" resultType="java.util.Map">
+        SELECT orderNo,actInAmount actualToAcc,moneyUsd moneyRmb,
+        mt4Acct,userid,moneyRmb actPay ,exRate,floatingRate,payFee,platformPayFee,platformActPayFee FROM
+        cbms.flow_deposit
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and operaterTime >= #{startDate}
+            </if>
+            <if test="endDate!= null and endDate != ''">
+                and #{endDate} > operaterTime
+            </if>
+
+            <if test="mt4Acc != null and mt4Acc != ''">
+                and mt4Acct = #{mt4Acc}
+            </if>
+            and mt4State=1 and state=1 and depositType=1
+        </where>
+        order by orderNo
+    </select>
+    <!--  本金出金和佣金出金  -->
+    <select id="getCashOutByMt4Acc" resultType="java.util.Map">
+        SELECT orderNo, (moneyRmb-payFee-platformPayFee)actPay,actOutAmount actualToAcc,
+        mt4Acct,userid,moneyUsd moneyRmb ,exRate,floatingRate,payFee,platformPayFee,platformActPayFee FROM
+        cbms.flow_withdraw
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and operaterTime >= #{startDate}
+            </if>
+            <if test="endDate!= null and endDate != ''">
+                and #{endDate} > operaterTime
+            </if>
+
+            <if test="mt4Acc != null and mt4Acc != ''">
+                and mt4Acct = #{mt4Acc}
+            </if>
+            <if test="acctType!= null and acctType != ''">
+                and acctType = #{acctType}
+            </if>
+            and mt4State=1 and state=1
+        </where>
+        order by orderNo
+    </select>
+</mapper>

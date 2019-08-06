@@ -1,0 +1,63 @@
+package com.ry.cbms.decision.server.page.table;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+/**
+ * 分页查询处理器
+ * 
+ * @author maoyang
+ *
+ */
+
+public class PageTableHandler {
+
+	private CountHandler countHandler;
+	private ListHandler listHandler;
+	private OrderHandler orderHandler;
+
+	public PageTableHandler(CountHandler countHandler, ListHandler listHandler) {
+		super();
+		this.countHandler = countHandler;
+		this.listHandler = listHandler;
+	}
+
+	public PageTableHandler(CountHandler countHandler, ListHandler listHandler, OrderHandler orderHandler) {
+		this(countHandler, listHandler);
+		this.orderHandler = orderHandler;
+	}
+
+	public PageTableResponse handle(PageTableRequest dtRequest) {
+		int count = 0;
+		int pageCount=0;
+		Collection<?> list = null;
+
+		count = this.countHandler.count(dtRequest);
+		if (count > 0) {
+			if (orderHandler != null) {
+				dtRequest = orderHandler.order(dtRequest);
+			}
+			list = this.listHandler.list(dtRequest);
+		}
+
+		if (list == null) {
+			list = new ArrayList<>();
+		}
+		int pageSize=dtRequest.getLimit();
+		pageCount=(count+pageSize-1)/pageSize;
+		return new PageTableResponse(count, count,pageCount,list);
+	}
+
+	public interface ListHandler {
+		Collection<?> list(PageTableRequest request);
+	}
+
+	public interface CountHandler {
+		int count(PageTableRequest request);
+	}
+
+	public interface OrderHandler {
+		PageTableRequest order(PageTableRequest request);
+	}
+}

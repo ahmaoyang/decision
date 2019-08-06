@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ry.cbms.decision.server.dao.CommissionDao">
+    <select id="allCommision" resultType="java.util.Map">
+        SELECT * FROM cbms.report_staff_commission
+        union
+        SELECT * FROM cbms.report_ib_commission
+        <where>
+            <if test="userid != null and userid != ''">
+                and userid in (#{userid})
+            </if>
+        </where>
+        <if test="offset !=null and offset!= ''">
+            <if test="limit !=null and limit != ''">
+                limit #{offset}, #{limit};
+            </if>
+        </if>
+
+    </select>
+
+
+    <select id="selectAllAccNumByUserId" resultType="java.lang.Integer">
+        select count(*) from cbms.cbms_account
+        <where>
+            <if test="ids != null and ids!= ''">
+                and userid in (#{ids})
+            </if>
+        </where>
+    </select>
+
+    <select id="selectAllAccByUserId" resultType="java.util.Map">
+        select* from cbms.cbms_account
+        <where>
+            <if test="ids != null and ids!= ''">
+                and userid in (#{ids})
+            </if>
+        </where>
+        <if test="offset !=null and offset!= ''">
+            <if test="limit !=null and limit != ''">
+                limit #{offset}, #{limit};
+            </if>
+        </if>
+
+    </select>
+
+    <select id="getAllAccNum" resultType="java.lang.Integer">
+        select count(*) from (
+        SELECT * FROM cbms.report_staff_commission
+        union
+        SELECT * FROM cbms.report_ib_commission
+        <where>
+            <if test="userid != null and userid != ''">
+                and userid= #{userid}
+            </if>
+        </where>
+        )a
+    </select>
+
+    <!--   佣金生成-->
+    <select id="sumCommByUserIdAndTime" resultType="java.math.BigDecimal">
+        select sum(sumCommission) from cbms.report_ib_commission a
+        <where>
+            <if test="userId != null and userId  != ''">
+                and userid= #{userId}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= occurrenceTime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and occurrenceTime >= #{startDate}
+            </if>
+        </where>
+    </select>
+
+
+    <select id="sumStaffCommByUserIdAndTime" resultType="java.math.BigDecimal">
+        select sum(sumCommission) from cbms.report_staff_commission
+        <where>
+            <if test="userId != null and userId  != ''">
+                and userid= #{userId}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= occurrenceTime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and occurrenceTime >= #{startDate}
+            </if>
+        </where>
+    </select>
+
+    <!--佣金出金-->
+    <select id="sumCommOutByUserIdAndTime" resultType="java.math.BigDecimal">
+        select sum(moneyUsd) from cbms.flow_withdraw
+        <where>
+            <if test="userId != null and userId  != ''">
+                and userid= #{userId }
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= operaterTime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and operaterTime >= #{startDate}
+            </if>
+            and state=1 and mt4State=1
+        </where>
+    </select>
+
+    <select id="sumCommOutFeeByUserIdAndTime" resultType="java.math.BigDecimal">
+        select sum(platformPayFee) from cbms.flow_withdraw
+        <where>
+            <if test="userId != null and userId  != ''">
+                and userid= #{userId}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= operaterTime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and operaterTime>= #{startDate}
+            </if>
+            and state=1 and mt4State=1
+        </where>
+    </select>
+
+    <select id="sumCommOutActFeeByUserIdAndTime" resultType="java.math.BigDecimal">
+        select sum(platformActPayFee) from cbms.flow_withdraw
+        <where>
+            <if test="userId != null and userId  != ''">
+                and userid= #{userId}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= operaterTime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and operaterTime>= #{startDate}
+            </if>
+            and state=1 and mt4State=1
+        </where>
+    </select>
+
+    <select id="sumCommOutBrokerFeeByUserIdAndTime" resultType="java.math.BigDecimal">
+        select sum(payFee) from cbms.flow_withdraw
+        <where>
+            <if test="userId != null and userId  != ''">
+                and userid= #{userId}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= operaterTime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and operaterTime>= #{startDate}
+            </if>
+            and state=1 and mt4State=1
+        </where>
+    </select>
+
+
+    <select id="sumCommToPrincipalByUserIdAndTime" resultType="java.math.BigDecimal">
+        select sum(tranMoney) from cbms.flow_transfer
+        <where>
+            <if test="userId != null and userId  != ''">
+                and userid= #{userId}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=endtime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and endtime >= #{startDate}
+            </if>
+            and acctFromType=2 and state=1
+        </where>
+    </select>
+
+    <select id="selectCommOutDetail" resultType="java.util.Map">
+        select * from cbms.flow_withdraw
+        <where>
+            <if test="userId != null and userId  != ''">
+                and userid= #{userId }
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= operaterTime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and operaterTime >= #{startDate}
+            </if>
+            and state=1 and mt4State=1
+        </where>
+    </select>
+
+
+    <select id="selectCommToPrincipleDetail" resultType="java.util.Map">
+        select * from cbms.flow_transfer
+        <where>
+            <if test="userId != null and userId  != ''">
+                and userid= #{userId}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= endtime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and endtime >= #{startDate}
+            </if>
+            and acctFromType=2 and state=1
+        </where>
+    </select>
+
+    <select id="selectCommByDay" resultType="java.util.Map">
+        select DATE_FORMAT(createtime,'%Y-%m-%d') reqTime,sum(allBalance) balance from cbms.cbms_account
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and createtime >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= createtime
+            </if>
+            and acctType=1
+            group by reqTime
+        </where>
+    </select>
+
+
+    <select id="selectCommByMonth" resultType="java.util.Map">
+        select DATE_FORMAT(createtime,'%Y-%m') reqTime,sum(allBalance) balance from cbms.cbms_account
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and createtime >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= createtime
+            </if>
+            and acctType=1
+            group by reqTime
+        </where>
+    </select>
+
+    <select id="selectAcctid" resultType="java.util.Map">
+        SELECT createtime,acctid FROM cbms.cbms_account
+        <where>
+            <if test="userId != null and userId  != ''">
+                and userid= #{userId}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectCommisionRecord" resultType="java.util.Map">
+       select * from(
+SELECT *  FROM cbms.report_staff_commission where ibid in (
+ SELECT userid FROM cbms.flow_withdraw where state=1 and mt4State=1 and acctType=2)
+ union
+ SELECT *  FROM cbms.report_ib_commission where ibid in (
+ SELECT userid FROM cbms.flow_withdraw where state=1 and mt4State=1 and acctType=2)
+ ) a where ibid=#{ibid}  and mt4Acct=#{mt4Acct}
+    </select>
+
+    <select id="sumComm" resultType="java.math.BigDecimal">
+        select sum(sumCommission) from(
+        SELECT * FROM cbms.report_staff_commission where ibid in (
+        SELECT userid FROM cbms.flow_withdraw where state=1 and mt4State=1 and acctType=2)
+        union
+        SELECT * FROM cbms.report_ib_commission where ibid in (
+        SELECT userid FROM cbms.flow_withdraw where state=1 and mt4State=1 and acctType=2)
+        ) a
+        <where>
+            ibid=#{ibid}
+            <if test="startDate !=null and startDate !=''">
+                and occurrenceTime >=#{startDate}
+            </if>
+            <if test="overDate != null and overDate != ''">
+                and #{overDate} >= occurrenceTime
+            </if>
+        </where>
+    </select>
+
+
+    <select id="sumCommByMt4" resultType="java.math.BigDecimal">
+        select sum(sumCommission) from(
+        SELECT * FROM cbms.report_staff_commission where ibid in (
+        SELECT userid FROM cbms.flow_withdraw where state=1 and mt4State=1 and acctType=2)
+        union
+        SELECT * FROM cbms.report_ib_commission where ibid in (
+        SELECT userid FROM cbms.flow_withdraw where state=1 and mt4State=1 and acctType=2)
+        ) a
+        <where>
+            ibid=#{ibid} and mt4Acct=#{mt4Acct}
+            <if test="startDate !=null and startDate !=''">
+                and occurrenceTime >=#{startDate}
+            </if>
+            <if test="overDate != null and overDate != ''">
+                and #{overDate} >= occurrenceTime
+            </if>
+
+        </where>
+    </select>
+
+
+    <select id="selectIbIdsByMt4Acc" resultType="java.lang.String">
+        select distinct(ibid) from (
+        SELECT * FROM cbms.report_staff_commission where ibid in (
+        SELECT userid FROM cbms.flow_withdraw where state=1 and mt4State=1 and acctType=2)
+        union
+        SELECT * FROM cbms.report_ib_commission where ibid in (
+        SELECT userid FROM cbms.flow_withdraw where state=1 and mt4State=1 and acctType=2)
+        ) a
+        <where>
+            mt4Acct=#{mt4Acct}
+            <if test="startDate !=null and startDate !=''">
+                and occurrenceTime >=#{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= occurrenceTime
+            </if>
+
+        </where>
+    </select>
+
+
+    <select id="getCommOutList" resultType="java.util.Map">
+        SELECT operaterTime, orderNo,(moneyRmb-payFee-platformPayFee)actPay,actOutAmount actualToAcc,
+        mt4Acct,userid,moneyUsd moneyRmb ,exRate,floatingRate,payFee,platformPayFee,platformActPayFee FROM
+        cbms.flow_withdraw
+        <where>
+            <if test="startDate!= null and startDate != ''">
+                and operaterTime >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=operaterTime
+            </if>
+
+            <if test="ibid != null and ibid!= ''">
+                and userid = #{ibid}
+            </if>
+            and mt4State=1 and state=1 and acctType=2
+        </where>
+    </select>
+
+</mapper>

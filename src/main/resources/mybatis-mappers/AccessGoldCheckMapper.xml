@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ry.cbms.decision.server.dao.AccessGoldCheckDao">
+    <insert id="saveAccessGoldChecks">
+        insert into access_gold_check(payChannel, tradeCode, serialNum, tradeAmount,
+        channelFees,actualArrival,payTime,checkResult,remark,remarkMoney,actualChannelFees,imageUrl,checkKind,createTime)
+        values
+        <foreach collection="checkList" item="check" separator=",">
+            (#{check.payChannel}, #{check.tradeCode}, #{check.serialNum}, #{check.tradeAmount}, #{check.channelFees},
+            #{check.actualArrival}, #{check.payTime}, 2, #{check.remark},#{check.remarkMoney},
+            #{check.actualChannelFees},#{check.imageUrl},#{check.checkKind},#{check.createTime})
+        </foreach>
+    </insert>
+
+
+    <select id="getChannelCashOuts" resultType="java.util.Map">
+        select * from cbms.flow_withdraw t
+        <where>
+            <if test="startTime != null and startTime != ''">
+                and operaterTime >= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and #{endTime} >= operaterTime
+            </if>
+            and mt4State=1 and state=1
+        </where>
+    </select>
+
+    <select id="selectChecksBySerialNum" resultType="com.ry.cbms.decision.server.model.AccessGoldCheck">
+        select * from access_gold_check
+        <where>
+            <if test="id != null and id != ''">
+                and serialNum = #{id}
+            </if>
+            <if test="checkKind!= null and checkKind != ''">
+                and checkKind = #{checkKind}
+            </if>
+        </where>
+    </select>
+
+    <select id="getChannelCashOutCount" resultType="int">
+        select count(*) from cbms.flow_withdraw
+        <where>
+            <if test="params.startTime != null and params.startTime != ''">
+                and operaterTime >= #{params.startTime}
+            </if>
+
+            <if test="params.checkResult != null and params.checkResult != ''">
+                and checkResult = #{params.checkResult}
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                and #{params.endTime} >= operaterTime
+            </if>
+            <if test="params.serialNum != null and params.serialNum != ''">
+                and id = #{params.serialNum}
+            </if>
+            <if test="params.accountName != null and params.accountName != ''">
+                and mt4Acct = #{params.accountName}
+            </if>
+            <if test="params.payChannel != null and params.payChannel != ''">
+                and platform = #{params.payChannel}
+            </if>
+            and mt4State=1 and state=1
+        </where>
+    </select>
+
+    <select id="getChannelCashInCount" resultType="int">
+        select count(*) from cbms.flow_deposit
+        <where>
+            <if test="params.startTime != null and params.startTime != ''">
+                and operaterTime >= #{params.startTime}
+            </if>
+
+            <if test="params.checkResult != null and params.checkResult != ''">
+                and checkResult = #{params.checkResult}
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                and #{params.endTime} >= operaterTime
+            </if>
+            <if test="params.serialNum != null and params.serialNum != ''">
+                and id = #{params.serialNum}
+            </if>
+            <if test="params.accountName != null and params.accountName != ''">
+                and mt4Acct = #{params.accountName}
+            </if>
+            <if test="params.payChannel != null and params.payChannel != ''">
+                and platform = #{params.payChannel}
+            </if>
+            and mt4State=1 and state=1
+        </where>
+    </select>
+
+    <select id="getChannelCashOutList" resultType="java.util.Map">
+        select id,moneyUsd,moneyRmb,exRate,payFee,platformPayFee,platformActPayFee ,actOutAmount
+        actAmount,operaterTime,checkResult
+        from cbms.flow_withdraw t
+        <where>
+            <if test="params.startTime != null and params.startTime != ''">
+                and operaterTime >= #{params.startTime}
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                and #{params.endTime} >= operaterTime
+            </if>
+
+            <if test="params.serialNum != null and params.serialNum != ''">
+                and id = #{params.serialNum}
+            </if>
+            <if test="params.checkResult != null and params.checkResult != ''">
+                and checkResult = #{params.checkResult}
+            </if>
+            <if test="params.accountName != null and params.accountName != ''">
+                and mt4Acct = #{params.accountName}
+            </if>
+            <if test="params.payChannel != null and params.payChannel != ''">
+                and platform = #{params.payChannel}
+            </if>
+            and mt4State=1 and state=1
+        </where>
+        order by operaterTime desc limit #{offset}, #{limit};
+    </select>
+
+
+    <select id="getChannelCashInList" resultType="java.util.Map">
+        select id,moneyUsd,moneyRmb,exRate,payFee,platformPayFee,platformActPayFee ,actInAmount
+        actAmount,operaterTime,checkResult
+        from cbms.flow_deposit t
+        <where>
+            <if test="params.startTime != null and params.startTime != ''">
+                and operaterTime >= #{params.startTime}
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                and #{params.endTime} >= operaterTime
+            </if>
+
+            <if test="params.serialNum != null and params.serialNum != ''">
+                and id = #{params.serialNum}
+            </if>
+            <if test="params.checkResult != null and params.checkResult != ''">
+                and checkResult = #{params.checkResult}
+            </if>
+            <if test="params.accountName != null and params.accountName != ''">
+                and mt4Acct = #{params.accountName}
+            </if>
+            <if test="params.payChannel != null and params.payChannel != ''">
+                and platform = #{params.payChannel}
+            </if>
+            and mt4State=1 and state=1
+        </where>
+        order by operaterTime desc limit #{offset}, #{limit};
+    </select>
+
+    <update id="updateBatch" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update access_gold_check
+            <set>
+                checkResult=#{item.checkResult}
+            </set>
+            where id = #{item.id}
+        </foreach>
+    </update>
+
+
+    <update id="updateChannelCheckBatch" parameterType="java.util.List">
+        <foreach collection="channelChecks" item="item" index="index" open="" close="" separator=";">
+            update cbms.flow_withdraw
+            <set>
+                checkResult=#{item.checkResult}
+                <if test="item.remarks != null and item.remarks != ''">
+                    remarks =#{item.remarks},
+                </if>
+                <!--                <if test="item.conflictAmount != null and item.conflictAmount != ''">-->
+                <!--                    conflictAmount =#{item.conflictAmount},-->
+                <!--                </if>-->
+            </set>
+            where id = #{item.id}
+        </foreach>
+    </update>
+
+    <update id="updateCashIn">
+        update cbms.flow_deposit t
+        <set>
+            <if test="params.checkResult != null and params.checkResult != ''">
+                t.checkResult=#{params.checkResult},
+            </if>
+            <if test="params.remarks != null and params.remarks  != ''">
+                t.remarks =#{params.remarks},
+            </if>
+            <if test="params.conflictAmount != null and params.conflictAmount != ''">
+                conflictAmount =#{params.conflictAmount},
+            </if>
+        </set>
+        where id = #{params.id}
+    </update>
+
+    <update id="updateCashOut">
+        update cbms.flow_withdraw t
+        <set>
+            <if test="params.checkResult != null and params.checkResult != ''">
+                t.checkResult=#{params.checkResult},
+            </if>
+            <if test="params.remarks != null and params.remarks  != ''">
+                t.remarks =#{params.remarks},
+            </if>
+            <if test="params.conflictAmount != null and params.conflictAmount != ''">
+                conflictAmount =#{params.conflictAmount},
+            </if>
+        </set>
+        where id = #{params.id}
+    </update>
+
+    <update id="update">
+        update access_gold_check t
+        <set>
+            <if test="checkResult != null and checkResult != ''">
+                t.checkResult=#{checkResult},
+            </if>
+            <if test="remark != null and .remark  != ''">
+                t.remark =#{remark},
+            </if>
+            <if test="imageUrl != null and imageUrl != ''">
+                t.imageUrl =#{imageUrl}
+            </if>
+        </set>
+        where id = #{params.id}
+    </update>
+</mapper>

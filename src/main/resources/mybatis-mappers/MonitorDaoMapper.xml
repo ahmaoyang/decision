@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ry.cbms.decision.server.dao.MonitorDao">
+
+
+    <select id="getValsPrice" resultType="com.ry.cbms.decision.server.dto.SimpleValData">
+       select symbol,bid,ask,direction from mt4.prices where SYMBOL in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        <if test="list != null ">
+            order by modify_time
+        </if>
+    </select>
+
+    <select id="getSinglePrice" resultType="com.ry.cbms.decision.server.dto.CharData">
+        select bid,ask,DATE_FORMAT(time,'%Y-%m-%d %H:%i:%s') as time from mt4.prices where symbol=#{symbol}
+        and
+        TIME  &gt; DATE_SUB(NOW(),INTERVAL  6 HOUR)
+    </select>
+
+</mapper>

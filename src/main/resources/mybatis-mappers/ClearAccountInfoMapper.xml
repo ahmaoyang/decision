@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ry.cbms.decision.server.dao.ClearAccountInfoDao">
+    <insert id="save">
+        insert into clear_account_info(createTime,rolloversFor6000,rolloversFor6002) values
+        (#{info.createTime}, #{info.rolloversFor6000}, #{info.rolloversFor6002})
+    </insert>
+
+
+    <update id="update" parameterType="com.ry.cbms.decision.server.model.ClearAccountInfo">
+        update clear_account_info
+        <set>
+
+            <if test="info.rolloversFor6000 != null and info.rolloversFor6000 != ''">
+                rolloversFor6000= #{info.rolloversFor6000},
+            </if>
+            <if test="info.rolloversFor6002 != null and info.rolloversFor6002 != ''">
+                rolloversFor6002= #{info.rolloversFor6002},
+            </if>
+            updateTime=#{info.updateTime},
+        </set>
+        where id = #{info.id}
+    </update>
+    <select id="getClearAccountInfoByCreateTime" resultType="com.ry.cbms.decision.server.model.ClearAccountInfo">
+        SELECT * FROM decision.clear_account_info
+        <where>
+            <if test="createTime!= null and createTime != ''">
+                and createTime= #{createTime}
+            </if>
+
+        </where>
+    </select>
+
+    <select id="getByDay" resultType="com.ry.cbms.decision.server.model.ClearAccountInfo">
+        SELECT *,(rolloversFor6000+rolloversFor6002)rollovers FROM clear_account_info
+        <where>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= createTime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and createTime>= #{startDate}
+            </if>
+        </where>
+    </select>
+
+    <select id="getByMonth" resultType="com.ry.cbms.decision.server.model.ClearAccountInfo">
+        SELECT *,(rolloversFor6000+rolloversFor6002)rollovers FROM clear_account_info
+        <where>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= createTime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and createTime>= #{startDate}
+            </if>
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ry.cbms.decision.server.dao.TransferDao">
+
+
+    <!--  转账  -->
+    <select id="getTransferByMt4Acc" resultType="java.util.Map">
+        SELECT id, mtAcctFrom,mtAcctTo ,tranMoney,endtime FROM cbms.flow_transfer
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and endtime >= #{startDate}
+            </if>
+            <if test="endDate!= null and endDate != ''">
+                and #{endDate} >= endtime
+            </if>
+
+            <if test="mt4Acc != null and mt4Acc != ''">
+                and mtAcctFrom = #{mt4Acc}
+            </if>
+            <if test="acctFromType!= null and acctFromType != ''">
+                and acctFromType = #{acctFromType}
+            </if>
+            and state=1 order by id
+        </where>
+
+    </select>
+</mapper>

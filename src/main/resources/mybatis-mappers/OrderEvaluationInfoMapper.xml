@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ry.cbms.decision.server.dao.OrderEvaluationInfoDao">
+    <insert id="save">
+        insert into order_evaluation_info(orderVariety, orderType, tradeNum, tradeTotalHands,
+        multipleHands,emptyHands,netPosition,notCloseProfitsAndLoss,createTime,mt4Acc) values
+        <foreach collection="evaluations" item="check" separator=",">
+            (#{check.orderVariety}, #{check.orderType}, #{check.tradeNum}, #{check.tradeTotalHands},
+            #{check.multipleHands},
+            #{check.emptyHands}, #{check.netPosition}, #{check.notCloseProfitsAndLoss},#{check.createTime},
+            #{check.mt4Acc})
+        </foreach>
+    </insert>
+
+
+    <select id="getAllOrderEvaluationInfo" resultType="com.ry.cbms.decision.server.model.OrderEvaluationInfo">
+        SELECT
+        orderVariety, sum(netPosition)netPosition,count(*) tradeNum,sum(tradeTotalHands*0.01)tradeTotalHands,sum(multipleHands)multipleHands,sum(emptyHands)emptyHands,sum(notCloseProfitsAndLoss)notCloseProfitsAndLoss
+        FROM decision.order_evaluation_info
+        <where>
+            <if test="account != null and account != ''">
+                and mt4Acc in (#{account})
+            </if>
+        </where>
+        group by orderVariety
+        limit #{offset}, #{limit};
+    </select>
+
+
+    <select id="getAllOrderEvaluationCount" resultType="java.lang.Integer">
+        select count(*) from (SELECT orderVariety FROM decision.order_evaluation_info
+        <where>
+            <if test="account != null and account != ''">
+                and mt4Acc in (#{account})
+            </if>
+        </where>
+        group by orderVariety
+        ) a
+    </select>
+
+    <select id="getOrderDataByHour" resultType="com.ry.cbms.decision.server.model.OrderEvaluationInfo">
+        SELECT DATE_FORMAT(createTime,'%Y-%m-%d:%H') createTime,
+        sum(netPosition)netPosition,sum(multipleHands)multipleHands,sum(emptyHands)emptyHands
+        FROM decision.order_evaluation_info
+        <where>
+            <if test="account != null and account != ''">
+                and mt4Acc in (#{account})
+            </if>
+            <if test="variety != null and variety != ''">
+                and orderVariety= #{variety}
+            </if>
+            <if test="orderType != null and orderType != ''">
+                and orderType =#{orderType}
+            </if>
+            <if test="startDate != null and startDate  != ''">
+                and createTime >=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+        </where>
+        group by DATE_FORMAT(createTime,'%Y-%m-%d:%H')
+    </select>
+
+
+    <select id="getOrderDataByDay" resultType="com.ry.cbms.decision.server.model.OrderEvaluationInfo">
+        SELECT DATE_FORMAT(createTime,'%Y-%m-%d') createTime,
+        sum(netPosition)netPosition,sum(multipleHands)multipleHands,sum(emptyHands)emptyHands
+        FROM decision.order_evaluation_info
+        <where>
+            <if test="account != null and account != ''">
+                and mt4Acc in (#{account})
+            </if>
+            <if test="variety != null and variety != ''">
+                and orderVariety= #{variety}
+            </if>
+            <if test="orderType != null and orderType != ''">
+                and orderType =#{orderType}
+            </if>
+            <if test="startDate != null and startDate  != ''">
+                and createTime >=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+
+
+        </where>
+        group by DATE_FORMAT(createTime,'%Y-%m-%d')
+    </select>
+
+    <select id="getOrderDataByWeek" resultType="com.ry.cbms.decision.server.model.OrderEvaluationInfo">
+        SELECT
+        sum(netPosition)netPosition,sum(multipleHands)multipleHands,sum(emptyHands)emptyHands
+        FROM decision.order_evaluation_info
+        <where>
+            <if test="account != null and account != ''">
+                and mt4Acc in (#{account})
+            </if>
+            <if test="variety != null and variety != ''">
+                and orderVariety= #{variety}
+            </if>
+            <if test="orderType != null and orderType != ''">
+                and orderType =#{orderType}
+            </if>
+            <if test="startDate != null and startDate  != ''">
+                and createTime >=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+
+
+        </where>
+        group by DATE_FORMAT(createTime,'%Y%u')
+    </select>
+
+    <select id="getOrderByCondition" resultType="com.ry.cbms.decision.server.model.OrderEvaluationInfo">
+        SELECT
+        orderType, orderVariety,sum(netPosition)netPosition,count(*)tradeNum,sum(multipleHands)multipleHands,sum(emptyHands)emptyHands,sum(notCloseProfitsAndLoss) notCloseProfitsAndLoss
+        FROM decision.order_evaluation_info
+        <where>
+            <if test="account != null and account != ''">
+                and mt4Acc in (#{account})
+            </if>
+            <if test="variety != null and variety != ''">
+                and orderVariety= #{variety}
+            </if>
+        </where>
+        group by orderType,orderVariety
+    </select>
+
+</mapper>

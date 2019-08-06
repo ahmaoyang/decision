@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ry.cbms.decision.server.dao.BondInfoDao">
+    <insert id="save">
+        insert into bond_Info(cashIn, cashOut, liquidityTransactionFee, bridgeFee,
+        closedProfitAndLoss,others,createTime,updateTime) values
+        <foreach collection="bondInfos" item="check" separator=",">
+            (#{check.cashIn}, #{check.cashOut}, #{check.liquidityTransactionFee}, #{check.bridgeFee},
+            #{check.closedProfitAndLoss},
+            #{check.others}, #{check.createTime}, #{check.updateTime}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateBondInfo" parameterType="com.ry.cbms.decision.server.model.BondInfo">
+        update decision.bond_Info
+        <set>
+            <if test="cashIn != null and cashIn != ''">
+                cashIn= #{cashIn},
+            </if>
+            <if test="cashOut != null and cashOut != ''">
+                cashOut=#{cashOut},
+            </if>
+            <if test="liquidityTransactionFee != null and liquidityTransactionFee != ''">
+                liquidityTransactionFee= #{liquidityTransactionFee},
+            </if>
+            <if test="bridgeFee != null and bridgeFee != ''">
+                bridgeFee=#{bridgeFee},
+            </if>
+            <if test="closedProfitAndLoss != null and closedProfitAndLoss != ''">
+                closedProfitAndLoss=#{closedProfitAndLoss},
+            </if>
+            <if test="others != null and others != ''">
+                others=#{others},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+
+    <select id="getByCreateDate" resultType="com.ry.cbms.decision.server.model.BondInfo">
+        SELECT * FROM decision.bond_Info
+        <where>
+            <if test="todayDate!= null and todayDate != ''">
+                and DATE_FORMAT(createTime,'%Y-%m-%d')= #{todayDate}
+            </if>
+
+        </where>
+    </select>
+
+
+    <select id="getByCreateTime" resultType="com.ry.cbms.decision.server.model.BondInfo">
+        SELECT * FROM decision.bond_Info
+        <where>
+            <if test="createTime!= null and createTime != ''">
+                and createTime= #{createTime}
+            </if>
+
+        </where>
+    </select>
+
+    <select id="getByDay" resultType="java.util.Map">
+        SELECT * FROM decision.bond_Info
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and createTime>= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= createTime
+            </if>
+        </where>
+        order by DATE_FORMAT(createTime,'%Y-%m-%d') desc
+    </select>
+
+
+    <select id="getByMonth" resultType="com.ry.cbms.decision.server.model.BondInfo">
+        SELECT
+        DATE_FORMAT(createTime,'%Y-%m')createTime,sum(cashIn)cashIn,sum(cashOut)cashOut,sum(liquidityTransactionFee)liquidityTransactionFee,sum(bridgeFee)bridgeFee,sum(closedProfitAndLoss)closedProfitAndLoss,sum(others)others
+        FROM decision.bond_Info
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and createTime>= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= createTime
+            </if>
+
+        </where>
+        group by DATE_FORMAT(createTime,'%Y-%m')  order by DATE_FORMAT(createTime,'%Y-%m') desc
+
+    </select>
+
+
+    <select id="getBondBalanceByDay" resultType="java.util.Map">
+        SELECT DATE_FORMAT(createTime,'%Y-%m-%d') reqTime,sum(cashIn-cashOut)cashBalance FROM decision.bond_Info
+        <where>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= createTime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and createTime >=#{startDate}
+            </if>
+        </where>
+        group by reqTime
+    </select>
+
+    <select id="getBondByDay" resultType="java.util.Map">
+        SELECT DATE_FORMAT(createTime,'%Y-%m-%d') reqTime,sum(cashIn-cashOut)balance FROM decision.bond_Info
+        <where>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= createTime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and createTime >=#{startDate}
+            </if>
+        </where>
+        group by reqTime
+    </select>
+
+    <select id="getBondSum" resultType="java.util.Map">
+        SELECT sum(cashIn-cashOut)balance FROM decision.bond_Info
+        <where>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= createTime
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and createTime >=#{startDate}
+            </if>
+        </where>
+    </select>
+
+    <select id="getBondBalanceByMonth" resultType="java.util.Map">
+        SELECT DATE_FORMAT(createTime,'%Y-%m') reqTime,sum(cashIn-cashOut)cashBalance FROM decision.bond_Info
+        <where>
+            <if test="endDate != null and endDate != ''">
+                <if test="startDate != null and startDate != ''">
+                    and createTime between #{startDate} and #{endDate}
+                </if>
+            </if>
+        </where>
+        group by reqTime
+    </select>
+
+    <select id="getDayUnitInfo" resultType="com.ry.cbms.decision.server.model.BondInfo">
+        SELECT
+        sum(cashIn)cashIn,sum(cashOut)cashOut,sum(liquidityTransactionFee)liquidityTransactionFee,sum(bridgeFee)bridgeFee,sum(closedProfitAndLoss)closedProfitAndLoss,sum(others)others
+        FROM decision.bond_Info
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and createTime>= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >= createTime
+            </if>
+        </where>
+        group by DATE_FORMAT(createTime,'%Y-%m-%d')
+    </select>
+</mapper>

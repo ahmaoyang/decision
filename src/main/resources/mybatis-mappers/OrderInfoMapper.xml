@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ry.cbms.decision.server.dao.OrderInfoDao">
+    <insert id="save">
+        insert into throw_info(throwProfit,notThrowProfit, riskThrowProfit, amount,
+        netProfit,retailNotCloseSettle,retailNotCloseProfit,account,createTime,commission,orderId,clearAccOrderId,clearAcc)
+        values
+        <foreach collection="infos" item="check" separator=",">
+            <if test="check.account != null and check.account  != ''">
+                (#{check.throwProfit}, #{check.notThrowProfit}, #{check.riskThrowProfit}, #{check.amount},
+                #{check.netProfit},
+                #{check.retailNotCloseSettle}, #{check.retailNotCloseProfit}, #{check.account},
+                #{check.createTime},#{check.commission},#{check.orderId},#{check.clearAccOrderId},#{check.clearAcc})
+            </if>
+        </foreach>
+    </insert>
+
+
+    <insert id="saveOrderDetail">
+        insert into order_detail(account,customerOrderProfit, clearAccProfit, clearAccOrderNo,
+        fee,brokerProfit,createTime,returnComm,customerOrder)
+        values
+        <foreach collection="orderDetailList" item="check" separator=",">
+            <if test="check.account != null and check.account  != ''">
+                (#{check.account}, #{check.customerOrderProfit}, #{check.clearAccProfit},
+                #{check.clearAccOrderNo},
+                #{check.fee},
+                #{check.brokerProfit}, #{check.createTime}, #{check.returnComm},
+                #{check.customerOrder})
+            </if>
+        </foreach>
+    </insert>
+
+
+    <insert id="deleteOrderDetail">
+        delete  from order_detail where customerOrder=#{customerOrder}
+    </insert>
+
+    <select id="getOrderDetailByCondition" resultType="java.util.HashMap">
+        select
+        account,sum(clearAccProfit)clearAccProfit,sum(customerOrderProfit)customerOrderProfit,sum(fee)fee,sum(brokerProfit)brokerProfit
+        from decision.order_detail
+        <where>
+            <if test="startDate != null and startDate  != ''">
+                and createTime >=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+
+            <if test="account != null and account  != ''">
+                and account in(#{account})
+            </if>
+        </where>
+        group by account limit #{offset}, #{limit};
+    </select>
+
+
+
+    <select id="getOrderRecordByAccountAndDate" resultType="com.ry.cbms.decision.server.vo.OrderDetailVo">
+        select * from order_detail
+        <where>
+            <if test="startDate != null and startDate  != ''">
+                and createTime >=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+
+            <if test="account != null and account  != ''">
+                and account =(#{account})
+            </if>
+        </where>
+    </select>
+
+
+
+    <select id="getOrderDetailCount" resultType="java.lang.Integer">
+        select count(*) from (
+        select * from order_detail
+        <where>
+            <if test="startDate != null and startDate  != ''">
+                and createTime >=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+
+            <if test="account != null and account  != ''">
+                and account in (#{account})
+            </if>
+        </where>
+        group by account
+        ) a
+    </select>
+
+
+    <select id="getOrderDetailSum" resultType="java.util.Map">
+        select sum(customerOrderProfit)customerOrderProfit,sum(clearAccProfit)clearAccProfit,sum(fee)fee,sum(brokerProfit)brokerProfit from order_detail
+        where account=#{account}
+    </select>
+
+    <select id="getThrowInfoDataByDay" resultType="com.ry.cbms.decision.server.model.ThrowInfo">
+        SELECT
+        sum(throwProfit)throwProfit,sum(notThrowProfit)notThrowProfit,sum(riskThrowProfit)riskThrowProfit,sum(amount)amount,
+        sum(netProfit)netProfit,sum(retailNotCloseSettle)retailNotCloseSettle,sum(retailNotCloseProfit)retailNotCloseProfit,
+        DATE_FORMAT(createTime,'%Y-%m-%d') createTime
+        FROM decision.throw_info
+        <where>
+            <if test="account != null and account != ''">
+                and account in (#{account})
+            </if>
+
+            <if test="startDate != null and startDate  != ''">
+                and createTime >=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+        </where>
+        group by DATE_FORMAT(createTime,'%Y-%m-%d')
+    </select>
+
+    <select id="getThrowInfoDataByWeek" resultType="com.ry.cbms.decision.server.model.ThrowInfo">
+        SELECT
+        sum(throwProfit)throwProfit,sum(notThrowProfit)notThrowProfit,sum(riskThrowProfit)riskThrowProfit,sum(amount)amount,
+        sum(netProfit)netProfit,sum(retailNotCloseSettle)retailNotCloseSettle,sum(retailNotCloseProfit)retailNotCloseProfit,
+        DATE_FORMAT(createTime,'%Y-%u') createTime
+        FROM decision.throw_info
+        <where>
+            <if test="account != null and account != ''">
+                and account in (#{account})
+            </if>
+
+            <if test="startDate != null and startDate  != ''">
+                and createTime >=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+        </where>
+        group by DATE_FORMAT(createTime,'%Y-%u')
+    </select>
+
+
+    <select id="getThrowInfoDataByMonth" resultType="com.ry.cbms.decision.server.model.ThrowInfo">
+        SELECT
+        sum(throwProfit)throwProfit,sum(notThrowProfit)notThrowProfit,sum(riskThrowProfit)riskThrowProfit,sum(amount)amount,
+        sum(netProfit)netProfit,sum(retailNotCloseSettle)retailNotCloseSettle,sum(retailNotCloseProfit)retailNotCloseProfit,
+        DATE_FORMAT(createTime,'%Y-%m') createTime
+        FROM decision.throw_info
+        <where>
+            <if test="account != null and account != ''">
+                and account in (#{account})
+            </if>
+
+            <if test="startDate != null and startDate  != ''">
+                and createTime>=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+        </where>
+        group by DATE_FORMAT(createTime,'%Y-%m')
+    </select>
+
+
+    <!--    <select id="getThrowInfoDataByDay" resultType="com.ry.cbms.decision.server.model.ThrowInfo">-->
+    <!--        SELECT-->
+    <!--        sum(throwProfit)throwProfit,sum(notThrowProfit)notThrowProfit,sum(riskThrowProfit)riskThrowProfit,sum(amount)amount,-->
+    <!--        sum(netProfit)netProfit,sum(retailNotCloseSettle)retailNotCloseSettle,sum(retailNotCloseProfit)retailNotCloseProfit,-->
+    <!--        DATE_FORMAT(createTime,'%Y%m%d')-->
+    <!--        FROM decision.throw_info-->
+    <!--        <where>-->
+    <!--            <if test="account != null and account != ''">-->
+    <!--                and account in (#{account})-->
+    <!--            </if>-->
+
+    <!--            <if test="startDate != null and startDate  != ''">-->
+    <!--                and createTime >=#{startDate}-->
+    <!--            </if>-->
+
+    <!--            <if test="endDate != null and endDate != ''">-->
+    <!--                and #{endDate} >=createTime-->
+    <!--            </if>-->
+    <!--        </where>-->
+    <!--        group by DATE_FORMAT(createTime,'%Y%m%d')-->
+    <!--    </select>-->
+
+    <!--    <select id="getThrowInfoByAccount" resultType="com.ry.cbms.decision.server.model.ThrowInfo">-->
+    <!--        SELECT-->
+    <!--        sum(throwProfit)throwProfit,sum(notThrowProfit)notThrowProfit,sum(riskThrowProfit)riskThrowProfit,sum(amount)amount,-->
+    <!--        sum(netProfit)netProfit,sum(retailNotCloseSettle)retailNotCloseSettle,sum(retailNotCloseProfit)retailNotCloseProfit,-->
+    <!--        DATE_FORMAT(createTime,'%Y%u')-->
+    <!--        FROM decision.throw_info-->
+    <!--        <where>-->
+    <!--            <if test="account != null and account != ''">-->
+    <!--                and account in (#{account})-->
+    <!--            </if>-->
+
+    <!--            <if test="startDate != null and startDate  != ''">-->
+    <!--                and createTime >=#{startDate}-->
+    <!--            </if>-->
+
+    <!--            <if test="endDate != null and endDate != ''">-->
+    <!--                and #{endDate} >=createTime-->
+    <!--            </if>-->
+    <!--        </where>-->
+    <!--        group by DATE_FORMAT(createTime,'%Y%u')-->
+    <!--    </select>-->
+
+    <!--    抛单交易量-->
+    <select id="getThrowInfoVolumeByMonth" resultType="com.ry.cbms.decision.server.model.ThrowInfo">
+        SELECT
+        DATE_FORMAT(createTime,'%Y-%m') createTime, Count(*) volume
+        FROM decision.throw_info
+        <where>
+            <if test="startDate != null and startDate  != ''">
+                and createTime>=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+            and clearAcc in(6000,6002)
+        </where>
+        group by DATE_FORMAT(createTime,'%Y-%m')
+    </select>
+
+<!--    抛单交易量-->
+    <select id="getThrowInfoVolumeByDay" resultType="com.ry.cbms.decision.server.model.ThrowInfo">
+        SELECT
+        DATE_FORMAT(createTime,'%Y-%m') createTime, Count(*) volume
+        FROM decision.throw_info
+        <where>
+            <if test="startDate != null and startDate  != ''">
+                and createTime>=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+            and clearAcc in(6000,6002)
+        </where>
+        group by DATE_FORMAT(createTime,'%Y-%m')
+    </select>
+
+
+
+    <select id="getThrowInfoVolume" resultType="com.ry.cbms.decision.server.model.ThrowInfo">
+        SELECT
+       Count(volume) volume
+        FROM decision.throw_info
+        <where>
+            <if test="startDate != null and startDate  != ''">
+                and createTime>=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+            and clearAcc in(6000,6002)
+        </where>
+
+    </select>
+
+
+
+    <!--    抛单非抛单交易量-->
+    <select id="getTotalThrowInfoVolumeByMonth" resultType="com.ry.cbms.decision.server.model.ThrowInfo">
+        SELECT
+        DATE_FORMAT(createTime,'%Y-%m') createTime, Count(*) volume
+        FROM decision.throw_info
+        <where>
+            <if test="startDate != null and startDate  != ''">
+                and createTime>=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+        </where>
+        group by DATE_FORMAT(createTime,'%Y-%m')
+    </select>
+
+    <!--    抛单和肺非抛单交易量-->
+    <select id="getTotalThrowInfoVolumeByDay" resultType="com.ry.cbms.decision.server.model.ThrowInfo">
+        SELECT
+        DATE_FORMAT(createTime,'%Y-%m') createTime, Count(*) volume
+        FROM decision.throw_info
+        <where>
+            <if test="startDate != null and startDate  != ''">
+                and createTime>=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+        </where>
+        group by DATE_FORMAT(createTime,'%Y-%m')
+    </select>
+
+
+
+    <!--    抛单和肺非抛单交易量-->
+    <select id="getTotalThrowInfoVolume" resultType="com.ry.cbms.decision.server.model.ThrowInfo">
+        SELECT
+         Count(volume) volume
+        FROM decision.throw_info
+        <where>
+            <if test="startDate != null and startDate  != ''">
+                and createTime>=#{startDate}
+            </if>
+
+            <if test="endDate != null and endDate != ''">
+                and #{endDate} >=createTime
+            </if>
+        </where>
+    </select>
+
+    <select id="getThrowInfoHisSum" resultType="com.ry.cbms.decision.server.model.ThrowInfo">
+        select  sum(throwProfit)throwProfit,sum(notThrowProfit)notThrowProfit,sum(riskThrowProfit)riskThrowProfit,sum(amount)amount,sum(netProfit)netProfit,sum(retailNotCloseSettle)retailNotCloseSettle,sum(retailNotCloseProfit)retailNotCloseProfit from decision.throw_info
+        <where>
+            <if test="account != null and account != ''">
+                and account =(#{account})
+            </if>
+        </where>
+
+    </select>
+
+
+</mapper>

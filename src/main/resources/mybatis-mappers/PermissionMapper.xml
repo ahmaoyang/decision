@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ry.cbms.decision.server.dao.PermissionDao">
+    <insert id="saveList">
+        insert into sys_permission(parentId, name, href, type, permission, sort) values
+        <foreach collection="permissions" item="check" separator=",">
+            (#{check.parentId}, #{check.name}, #{check.href}, #{check.type},
+            #{check.permission},
+            #{check.sort}
+            )
+        </foreach>
+    </insert>
+</mapper>

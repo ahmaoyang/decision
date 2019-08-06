@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ry.cbms.decision.server.dao.RetailDao">
+    <!--       <select id="selectRetailInfoByCondition" resultType="com.ry.cbms.decision.server.model.RetailAccount">-->
+    <!--        select * from cbms.cbms_account-->
+    <!--        <where>-->
+
+    <!--            <if test="account != null and account != ''">-->
+    <!--                and acctid= #{account}-->
+    <!--            </if>-->
+
+    <!--        </where>-->
+    <!--        limit #{offset}, #{limit};-->
+    <!--    </select>-->
+
+
+    <select id="select" resultType="com.ry.cbms.decision.server.model.RetailAccount">
+        SELECT (principalIn) principalIn,sum(commissionToPrincipal) commissionToPrincipal,sum(principalOut)
+        principalOut,sum(netCashIn) netCashIn,sum(closeProfitAndLoss) closeProfitAndLoss,sum(deduction)
+        deduction,sum(otherFunds) otherFunds,sum(openProfitAndLoss) openProfitAndLoss,date_format(createTime,'%Y-%m-%d')
+        createTime FROM decision.retail_account
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and createTime >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate}>=createTime
+            </if>
+        </where>
+    </select>
+
+
+
+    <select id="selectByDay" resultType="com.ry.cbms.decision.server.model.RetailAccount">
+        SELECT sum(principalIn) principalIn,sum(commissionToPrincipal) commissionToPrincipal,sum(principalOut)
+        principalOut,sum(netCashIn) netCashIn,sum(closeProfitAndLoss) closeProfitAndLoss,sum(deduction)
+        deduction,sum(otherFunds) otherFunds,sum(openProfitAndLoss) openProfitAndLoss,date_format(createTime,'%Y-%m-%d')
+        createTime FROM decision.retail_account
+        <where>
+            <if test="account != null and account != ''">
+                and account in(#{account})
+            </if>
+
+            <if test="startDate != null and startDate != ''">
+                and createTime >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate}>=createTime
+            </if>
+        </where>
+        group by date_format(createTime,'%Y-%m-%d')
+    </select>
+
+
+    <select id="selectByMonth" resultType="com.ry.cbms.decision.server.model.RetailAccount">
+        SELECT sum(principalIn) principalIn,sum(commissionToPrincipal) commissionToPrincipal,sum(principalOut)
+        principalOut,sum(netCashIn) netCashIn,sum(closeProfitAndLoss) closeProfitAndLoss,sum(deduction)
+        deduction,sum(otherFunds) otherFunds,sum(openProfitAndLoss) openProfitAndLoss,date_format(createTime,'%Y-%m')
+        createTime FROM decision.retail_account
+        <where>
+            <if test="account != null and account != ''">
+                and account in(#{account})
+            </if>
+
+            <if test="startDate != null and startDate != ''">
+                and createTime >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate}>=createTime
+            </if>
+        </where>
+        group by date_format(createTime,'%Y-%m')
+    </select>
+    <insert id="saveRetailInfo">
+        insert into retail_account(account, agentId, lastRetailPrincipal, principalIn,
+        commissionToPrincipal,principalOut,netCashIn,closeProfitAndLoss,deduction,otherFunds,currentRetailBalance,openProfitAndLoss,currentRetailNet,createTime)
+        values
+        <foreach collection="retailAccounts" item="retail" separator=",">
+            (#{retail.account}, #{retail.agentId}, #{retail.lastRetailPrincipal}, #{retail.principalIn},
+            #{retail.commissionToPrincipal},
+            #{retail.principalOut}, #{retail.netCashIn}, #{retail.closeProfitAndLoss},#{retail.deduction},
+            #{retail.otherFunds},#{retail.currentRetailBalance},#{retail.openProfitAndLoss},#{retail.currentRetailNet},#{retail.createTime})
+        </foreach>
+    </insert>
+
+    <delete  id="deleteRetailInfo">
+        delete * from   retail_account
+        <where>
+            <if test="todayDate !=null">
+                and DATE_FORMAT(createTime,'%Y-%m-%d')=#{todayDate}
+            </if>
+        </where>
+
+    </delete>
+
+
+    <select id="selectByDayUnit" resultType="java.util.Map">
+        select DATE_FORMAT(createTime,'%Y-%m-%d') reqTime, sum(currentRetailBalance)balance from retail_account
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and createTime >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate}>=createTime
+            </if>
+
+        </where>
+        group by reqTime
+    </select>
+
+    <select id="SelectMt4AccsByUserId" resultType="java.lang.String">
+       select distinct(mtAcct) from cbms.flow_mt4acct
+        <where>
+        <if test="userIds != null and userIds != ''">
+            and userid in(${userIds})
+        </if>
+        </where>
+    </select>
+
+
+    <select id="getRetailHisSum" resultType="com.ry.cbms.decision.server.model.RetailAccount">
+        select sum(principalIn)principalIn,sum(commissionToPrincipal)commissionToPrincipal,sum(principalOut)principalOut,sum(netCashIn)netCashIn,sum(closeProfitAndLoss)closeProfitAndLoss,sum(deduction)deduction,sum(otherFunds)otherFunds,sum(openProfitAndLoss)openProfitAndLoss from decision.retail_account
+          <where>
+            <if test="account != null and account != ''">
+                and account in (#{account})
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

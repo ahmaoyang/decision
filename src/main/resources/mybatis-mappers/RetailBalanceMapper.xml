@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ry.cbms.decision.server.dao.RetailBalanceDao">
+    <insert id="save">
+        insert into retail_balance(retailBalance,createTime) values
+            (#{retailBalance},#{createTime})
+ </insert>
+    <select id="getBalanceByDay" resultType="com.ry.cbms.decision.server.model.RetailBalance">
+        SELECT DATE_FORMAT(createTime,'%Y-%m-%d'),sum(retailBalance)retailBalance FROM retail_balance
+        <where>
+            <if test="endDate != null and endDate != ''">
+            </if>
+
+                <if test="startDate != null and startDate != ''">
+
+                </if>
+
+        </where>
+        group by DATE_FORMAT(createTime,'%Y-%m-%d')
+    </select>
+
+    <select id="getBalanceByMonth" resultType="com.ry.cbms.decision.server.model.RetailBalance">
+        SELECT DATE_FORMAT(createTime,'%Y-%m') createTime,sum(retailBalance)retailBalance FROM retail_balance
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and createTime >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate}>=createTime
+            </if>
+        </where>
+        group by DATE_FORMAT(createTime,'%Y-%m')
+    </select>
+
+
+    <select id="getBalanceByCreateDate" resultType="com.ry.cbms.decision.server.model.RetailBalance">
+        SELECT retailBalance FROM retail_balance
+        <where>
+            and createTime=#{createTime}
+        </where>
+    </select>
+
+
+
+   <select id="getBalance" resultType="com.ry.cbms.decision.server.model.RetailBalance">
+        SELECT sum(retailBalance)retailBalance FROM retail_balance
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and createTime >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate}>=createTime
+            </if>
+        </where>
+    </select>
+
+
+    <select id="getBalanceByCondition" resultType="com.ry.cbms.decision.server.model.RetailBalance">
+        SELECT * FROM retail_balance
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and createTime >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and #{endDate}>=createTime
+            </if>
+        </where>
+    </select>
+
+
+
+
+    <update id="update">
+        update retail_balance t
+        <set>
+            <if test="retailBalance != null">
+                retailBalance = #{retailBalance},
+            </if>
+        </set>
+        where t.id = #{id}
+    </update>
+
+</mapper>
